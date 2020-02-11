@@ -1,11 +1,12 @@
 from scipy import linalg
 import numpy as np
+import matplotlib.pyplot as plt
+import cv2
 import random 
 
-def calculate_projection_error(P, world_coords, img_coords):
+def project_points(P, world_coords):
     # Convert points into homogeneous coordinates
     world_coords_homogeneous = np.concatenate((world_coords, np.ones((len(world_coords), 1))), axis=1)
-    image_coords_homogeneous = np.concatenate((img_coords, np.ones((len(img_coords), 1))), axis=1)
 
     # Calculate the projected points and normalize them
     projected_coords = P @ world_coords_homogeneous.T
@@ -13,6 +14,15 @@ def calculate_projection_error(P, world_coords, img_coords):
     projected_coords[1, :] = projected_coords[1, :] / projected_coords[2, :]
     projected_coords[2, :] = projected_coords[2, :] / projected_coords[2, :]
     projected_coords = projected_coords.T
+
+    return projected_coords   
+
+def calculate_projection_error(P, world_coords, img_coords):
+    # Convert points into homogeneous coordinates
+    image_coords_homogeneous = np.concatenate((img_coords, np.ones((len(img_coords), 1))), axis=1)
+
+    # Calculate the projected points
+    projected_coords = project_points(P, world_coords)
 
     # Calculate the projection error
     projection_error =  np.mean(np.sum(np.square(image_coords_homogeneous - projected_coords), axis=1))
@@ -97,16 +107,23 @@ def decompose_P(P):
     return K, R, t
 
 def main():
+    # Read the image
+    # img = cv2.imread('./Camera_calibration_data/calib-object.jpg')
+    # img = cv2.imread('./Camera_calibration_data/Fig1.png')
+    img = cv2.imread('./resources/iPhone_DLT/images/DLT_5.jpeg')
+
     # Load the world coordinates
-    world_coords = np.load('./resources/world_coordinates.npy')
-    # world_coords = np.load('./resources/iPhone_DLT/data/world_coords_iphone.npy')
+    # world_coords = np.array(np.load('./resources/world_coordinates.npy')).astype('float32')
+    # world_coords = np.array(np.load('./resources/dist_world_coordinates.npy')).astype('float32')
+    world_coords = np.load('./resources/iPhone_DLT/data/world_coords_iphone.npy')
 
     # Load the pixel coordinates
-    pixel_coords = np.load('./resources/pixel_coordinates.npy')
-    # pixel_coords = np.load('./resources/iPhone_DLT/data/pixel_coords_iphone_5.npy')
+    # pixel_coords = np.array(np.load('./resources/pixel_coordinates.npy')).astype('float32')
+    # pixel_coords = np.array(np.load('./resources/dist_pixel_coordinates.npy')).astype('float32')
+    pixel_coords = np.load('./resources/iPhone_DLT/data/pixel_coords_iphone_5.npy')
 
     # Run RANSAC
-    P = RANSAC(world_coords, pixel_coords, len(world_coords), max_iterations=50000)
+    P = RANSAC(world_coords, pixel_coords, len(world_coords), max_iterations=100)
 
     # Output the Tranformation Matrix
     print("The Projection Matrix:")
@@ -114,6 +131,7 @@ def main():
 
     # Decompose Projection Matrix into Intrinsic, Rotation and Translation
     K, R, t = decompose_P(P)
+    K[0,1] = 0
     
     print("Camera Intrinsic Matrix:")
     print(K)
@@ -126,5 +144,22 @@ def main():
 
     print("Projection Error (MSE) for the Above Projection Matrix: {}".format(calculate_projection_error(P, world_coords, pixel_coords)))
 
+    print(img)
+    plt.imshow(img)
+    projected_points = project_points(P, world_coords)
+    plt.scatter(projected_points[:, 0], projected_points[:, 1], c='chartreuse')
+    plt.show()
+
+    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera([world_coords[:,:3].astype('float32')], [pixel_coords[:,:2].astype('float32')], (img.shape[1],img.shape[0]), K, None, None, flags=(cv2.CALIB_USE_INTRINSIC_GUESS))
+
+    K_optim, ROI = cv2.getOptimalNewCameraMatrix(K, dist, (img.shape[1],img.shape[0]), 1, (img.shape[1],img.shape[0]))
+
+    img_undistort = cv2.undistort(img, mtx, dist, None, K_optim)
+
+    f, ax = plt.subplots(2,1) 
+    ax[0].imshow(img)
+    ax[1].imshow(img_undistort)
+
+    plt.show()  
 if __name__ == '__main__':
     main()

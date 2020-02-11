@@ -4,6 +4,7 @@ import numpy as np
 import glob
 import math
 import random
+import scipy.linalg.null_space
 
 def euler_angles_to_rotation(theta) :
     R_x = np.array([[1,0,0],[0,math.cos(theta[0]),-math.sin(theta[0])],[0,math.sin(theta[0]), math.cos(theta[0])]])
@@ -45,6 +46,7 @@ def get_projections(image_number, mtx, dist, rvecs, tvecs, width, height, cell_l
     RnT[0:3, 0:3] = R[0:3, 0:3]
     RnT[:,3] = tvecs[image_number][:,0]
     P = mtx @ RnT
+    print(scipy.linalg.null_space(P))
     P = P/P[2,3]
 
     projected_coords = P @ world_coords.T
@@ -79,8 +81,12 @@ def plot_wireframe(projected_coords, width, height):
 
 def main():
     # ret, mtx, dist, rvecs, tvecs, imgs = calibrate_camera('./Camera_calibration_data/IMG_', 8, 6, 29, (5456, 5471))
-    ret, mtx, dist, rvecs, tvecs, imgs = calibrate_camera('./resources/z', 8, 6, 29, (1, 12))
+    ret, mtx, dist, rvecs, tvecs, imgs = calibrate_camera('./resources/iPhone_Zhang/images/z', 8, 6, 29, (1, 12))
 
+    print(mtx)
+    print(dist)
+    print(rvecs)
+    print(tvecs)
     for i in range(len(imgs)):
         projected_coords = get_projections(i, mtx, dist, rvecs, tvecs, 8, 6, 29)
         plt.imshow(imgs[i])
