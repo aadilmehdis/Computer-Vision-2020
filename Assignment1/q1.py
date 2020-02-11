@@ -29,7 +29,7 @@ def construct_DLT_matrix(X, x):
         M = np.concatenate((M, m))
     return M
 
-def RANSAC(world_coords, img_coords, max_iterations=5000):
+def RANSAC(world_coords, img_coords, num_points, max_iterations=5000):
 
     min_proj_error = 999999999
 
@@ -39,7 +39,7 @@ def RANSAC(world_coords, img_coords, max_iterations=5000):
     for i in range(max_iterations):
                 
         # Randomly select 6 world points and the corresponding image points
-        idx = random.sample(range(0, 50), 6)        
+        idx = random.sample(range(0, num_points), 6)        
         X = world_coords[idx]
         x = img_coords[idx]
 
@@ -97,15 +97,16 @@ def decompose_P(P):
     return K, R, t
 
 def main():
-    pass 
     # Load the world coordinates
     world_coords = np.load('./resources/world_coordinates.npy')
+    # world_coords = np.load('./resources/iPhone_DLT/data/world_coords_iphone.npy')
 
     # Load the pixel coordinates
     pixel_coords = np.load('./resources/pixel_coordinates.npy')
+    # pixel_coords = np.load('./resources/iPhone_DLT/data/pixel_coords_iphone_5.npy')
 
     # Run RANSAC
-    P = RANSAC(world_coords, pixel_coords, max_iterations=50000)
+    P = RANSAC(world_coords, pixel_coords, len(world_coords), max_iterations=50000)
 
     # Output the Tranformation Matrix
     print("The Projection Matrix:")
