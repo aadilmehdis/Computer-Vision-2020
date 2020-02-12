@@ -22,7 +22,7 @@ def calibrate_camera(path, width, height, cell_length, rng):
 
     imgs = []
     for i in range(rng[0],rng[1]):
-        im=cv2.imread(path + str(i) + '.JPG')
+        im=cv2.imread(path + str(i) + '.jpeg')
         imgs.append(im)
         ret, corners = cv2.findChessboardCorners(im, (width, height))
         
@@ -79,8 +79,8 @@ def plot_wireframe(projected_coords, width, height):
     plt.show() 
 
 def main():
-    ret, mtx, dist, rvecs, tvecs, imgs = calibrate_camera('./Camera_calibration_data/IMG_', 8, 6, 29, (5456, 5471))
-    # ret, mtx, dist, rvecs, tvecs, imgs = calibrate_camera('./resources/iPhone_Zhang/images/z', 8, 6, 29, (1, 12))
+    # ret, mtx, dist, rvecs, tvecs, imgs = calibrate_camera('./Camera_calibration_data/IMG_', 8, 6, 29, (5456, 5471))
+    ret, mtx, dist, rvecs, tvecs, imgs = calibrate_camera('./resources/iPhone_Zhang/images/z', 8, 6, 29, (1, 12))
 
     print()
     print("Intrinsix Matrix")

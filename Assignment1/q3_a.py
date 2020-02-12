@@ -108,19 +108,19 @@ def decompose_P(P):
 
 def main():
     # Read the image
-    img = cv2.imread('./Camera_calibration_data/calib-object.jpg')
+    # img = cv2.imread('./Camera_calibration_data/calib-object.jpg')
     # img = cv2.imread('./Camera_calibration_data/Fig1.png')
-    # img = cv2.imread('./resources/iPhone_DLT/images/DLT_1.jpeg')
+    img = cv2.imread('./resources/iPhone_DLT/images/DLT_1.jpeg')
 
     # Load the world coordinates
-    world_coords = np.array(np.load('./resources/world_coordinates.npy')).astype('float32')
+    # world_coords = np.array(np.load('./resources/world_coordinates.npy')).astype('float32')
     # world_coords = np.array(np.load('./resources/dist_world_coordinates.npy')).astype('float32')
-    # world_coords = np.load('./resources/iPhone_DLT/data/world_coords_iphone.npy')
+    world_coords = np.load('./resources/iPhone_DLT/data/world_coords_iphone.npy')
 
     # Load the pixel coordinates
-    pixel_coords = np.array(np.load('./resources/pixel_coordinates.npy')).astype('float32')
+    # pixel_coords = np.array(np.load('./resources/pixel_coordinates.npy')).astype('float32')
     # pixel_coords = np.array(np.load('./resources/dist_pixel_coordinates.npy')).astype('float32')
-    # pixel_coords = np.load('./resources/iPhone_DLT/data/pixel_coords_iphone_1.npy')
+    pixel_coords = np.load('./resources/iPhone_DLT/data/pixel_coords_iphone_1.npy')
 
     # Run RANSAC
     P = RANSAC(world_coords, pixel_coords, len(world_coords), max_iterations=100)
@@ -152,23 +152,5 @@ def main():
     projected_points = project_points(P, world_coords)
     plt.scatter(projected_points[:, 0], projected_points[:, 1], c='chartreuse')
     plt.show()
-
-    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera([world_coords[:,:3].astype('float32')], [pixel_coords[:,:2].astype('float32')], (img.shape[1],img.shape[0]), K, None, None, flags=(cv2.CALIB_USE_INTRINSIC_GUESS))
-
-    K_optim, ROI = cv2.getOptimalNewCameraMatrix(K, dist, (img.shape[1],img.shape[0]), 1, (img.shape[1],img.shape[0]))
-    print()
-    print("Distortion Parameters")
-    print(dist)
-    print()
-    print("Intrinsic Matrix after correcting for distortion")
-    print(K_optim)
-
-    img_undistort = cv2.undistort(img, mtx, dist, None, K_optim)
-
-    f, ax = plt.subplots(2,1) 
-    ax[0].imshow(img)
-    ax[1].imshow(img_undistort)
-
-    plt.show()  
 if __name__ == '__main__':
     main()
