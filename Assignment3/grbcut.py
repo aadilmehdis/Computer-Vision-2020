@@ -1,5 +1,4 @@
 from sklearn.mixture import GaussianMixture
-# from GMM import GaussianMixture
 import numpy as np
 import igraph as ig
 
